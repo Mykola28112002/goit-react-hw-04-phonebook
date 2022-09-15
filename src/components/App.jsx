@@ -1,6 +1,6 @@
 
 import { Div } from './App.styled';
-import React, { Component } from "react";
+import { useState,useEffect } from "react";
 // import { nanoid } from 'nanoid'
 import { ContactForm } from './ContactForm/ContactForm';
 import { ContactList } from './ContactList/ContactList';
@@ -8,79 +8,80 @@ import { Section } from './Section/Section';
 import { Filter } from './Filter/Filter';
 import { nanoid } from 'nanoid';
 
-export class App extends Component {
-  state = {
-    contacts: [
-      { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-      { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-      { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-      { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-    ],
-    filter: '',
-  };
+
+export function App() { 
+  const [contacts, setContacts] = useState([
+    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ]);
+  const [filter, setFilter] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+ 
   
-  addContact = ({name,number,contacts}) => {
+  const addContact = ({ name, number }) => {
+    setIsTyping(true);
+
     const contact = {
       id: nanoid(),
       name,
       number,
     };
-    this.setState(({ contacts }) => {
+    setContacts(contacts => {
       if (contacts.some(contact => contact.name === name)) {
-        return alert(`${contact.name} is already in contacts`);
+        alert(`${contact.name} is already in contacts`);
+        return [...contacts]
       }
-      return {
-        contacts: [contact, ...contacts],
-      };
+      return [contact, ...contacts]
     });
   };
-  changeFilter = e => {
-    this.setState({ filter: e.currentTarget.value });
+  const changeFilter = e => {
+    setFilter(e.currentTarget.value);
   };
 
-  getVisibleContacts = () => {
-    
-    const { contacts, filter } = this.state;
+  const getVisibleContacts = () => {
     const normalizedFilter = filter.toLowerCase();
     return contacts.filter(contact =>
       contact.name.toLowerCase().includes(normalizedFilter)
     );
   };
 
-  deleteContact = contactId => {
-    this.setState(prevState => ({
-      contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-      filter: '',
-    }));
+  const deleteContact = contactId => {
+    setIsTyping(true);
+    setContacts(contacts.filter(contact => contact.id !== contactId));
+    setFilter('')
   };
   
-  componentDidMount() {
+  useEffect(() => {
+    if (isTyping) {
+      localStorage.setItem('contacts', JSON.stringify(contacts));
+      // 
+    }
+    
+  });
+
+  useEffect(() => {
     const contacts = localStorage.getItem('contacts');
     const parsedContacts = JSON.parse(contacts)
     if (parsedContacts !== null) {
-      this.setState({ contacts: parsedContacts });
+      setContacts(parsedContacts)
     }
-  };
+  },[isTyping]);
 
-  componentDidUpdate(prevState) {
-    if (this.state.contacts !== prevState.contacts) {
-      localStorage.setItem('contacts', JSON.stringify(this.state.contacts));
-    };
-  };
-  render() {
-    const { filter } = this.state;
-    const visibleContacts = this.getVisibleContacts();
+  
     return <Div className='thema'>
       <Section title="Phonebook">
-        <ContactForm  onSubmit={this.addContact} />
+        <ContactForm
+          onSubmit={addContact}
+        />
       </Section>
       <Section title="Contacts">
-        <Filter  value={filter} onChange={this.changeFilter}/>
+        <Filter  value={filter} onChange={changeFilter}/>
         <ContactList
-          contacts={visibleContacts}
-          onDeleteContactList={this.deleteContact}
+          contacts={getVisibleContacts()}
+          onDeleteContactList={deleteContact}
         />
       </Section>
     </Div>
-  }
 }
