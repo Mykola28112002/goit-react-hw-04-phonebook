@@ -10,19 +10,21 @@ import { nanoid } from 'nanoid';
 
 
 export function App() { 
-  const [contacts, setContacts] = useState([
-    { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
-    { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
-    { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
-    { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
-  ]);
+
+  const CONTACTS = [
+  { id: 'id-1', name: 'Rosie Simpson', number: '459-12-56' },
+  { id: 'id-2', name: 'Hermione Kline', number: '443-89-12' },
+  { id: 'id-3', name: 'Eden Clements', number: '645-17-79' },
+  { id: 'id-4', name: 'Annie Copeland', number: '227-91-26' },
+  ];
+  
+  const [contacts, setContacts] = useState(
+    () => JSON.parse(localStorage.getItem('contacts')) ?? CONTACTS
+  );
   const [filter, setFilter] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
  
   
   const addContact = ({ name, number }) => {
-    setIsTyping(true);
-
     const contact = {
       id: nanoid(),
       name,
@@ -48,26 +50,15 @@ export function App() {
   };
 
   const deleteContact = contactId => {
-    setIsTyping(true);
     setContacts(contacts.filter(contact => contact.id !== contactId));
     setFilter('')
   };
   
   useEffect(() => {
-    if (isTyping) {
-      localStorage.setItem('contacts', JSON.stringify(contacts));
-      // 
-    }
-    
-  });
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+  },[contacts]);
 
-  useEffect(() => {
-    const contacts = localStorage.getItem('contacts');
-    const parsedContacts = JSON.parse(contacts)
-    if (parsedContacts !== null) {
-      setContacts(parsedContacts)
-    }
-  },[isTyping]);
+
 
   
     return <Div className='thema'>
